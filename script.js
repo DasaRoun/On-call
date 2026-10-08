@@ -1,7 +1,24 @@
 // ==========================================
-// 1. 파트 목록 및 주요 한국 법정 공휴일 정의
+// 0. 파이어베이스 및 파트 목록 설정
 // ==========================================
-const parts = ['무선', '고객', '유선1', '유선2'];
+const firebaseConfig = {
+  apiKey: "AIzaSyBSRQl0aE1MPZ28LV82Gik4ZVtNUenukqY",
+  authDomain: "dasarowon-duty.firebaseapp.com",
+  projectId: "dasarowon-duty",
+  storageBucket: "dasarowon-duty.appspot.com",
+  messagingSenderId: "988864759421",
+  appId: "1:988864759421:web:384e950ff06100d0b9d314",
+  measurementId: "G-EPBYBDCQJX"
+};
+
+// 파이어베이스 초기화
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ==========================================
+// 1. 파트 목록 (고객1팀 ~ 고객7팀) 및 공휴일 정의
+// ==========================================
+const parts = ['고객1팀', '고객2팀', '고객3팀', '고객4팀', '고객5팀', '고객6팀', '고객7팀'];
 
 // 주요 법정 공휴일 목록 (MM-DD: 공휴일명)
 const holidays = {
@@ -54,8 +71,6 @@ const formatFormattedDate = (dateString) => {
     colorClass = 'date-sat';
   }
 
-  // 첫 번째 줄: YYYY-MM-DD (요일)
-  // 두 번째 줄: 공휴일명
   let displayHtml = `${dateString} (${days[dayIndex]})`;
   if (holidayName) {
     displayHtml += `<br><span class="holiday-name">${holidayName}</span>`;
@@ -108,7 +123,22 @@ const renderTable = () => {
 };
 
 // ==========================================
-// 6. 특정 파트 당직자 삭제 함수
+// 🔄 파이어베이스 연동: 실시간 데이터 감시
+// ==========================================
+const loadDutyDataRealtime = () => {
+  db.collection("duties").orderBy("date").onSnapshot((snapshot) => {
+    dutyList = [];
+    snapshot.forEach((doc) => {
+      dutyList.push({ id: doc.id, ...doc.data() });
+    });
+    renderTable();
+  }, (error) => {
+    console.error("실시간 동기화 오류: ", error);
+  });
+};
+
+// ==========================================
+// 6. 특정 파트 당직자 삭제 함수 (파이어베이스 반영)
 // ==========================================
 const deleteSingleWorker = (date, part) => {
   let targetData = dutyList.find(item => item.date === date);
@@ -118,15 +148,15 @@ const deleteSingleWorker = (date, part) => {
 
     const isEmpty = parts.every(p => !targetData[p] || targetData[p] === '-');
     if (isEmpty) {
-      dutyList = dutyList.filter(item => item.date !== date);
+      db.collection("duties").doc(date).delete().catch(err => console.error(err));
+    } else {
+      db.collection("duties").doc(date).set(targetData).catch(err => console.error(err));
     }
-
-    renderTable();
   }
 };
 
 // ==========================================
-// 7. 개별 직접 등록 함수
+// 7. 개별 직접 등록 함수 (파이어베이스 저장)
 // ==========================================
 const addDuty = () => {
   const dateInput = document.getElementById('dutyDate');
@@ -143,23 +173,25 @@ const addDuty = () => {
   }
 
   let existingData = dutyList.find(item => item.date === dateValue);
+  let newData = existingData ? { ...existingData } : { date: dateValue };
 
-  if (existingData) {
-    existingData[partValue] = nameValue;
-  } else {
-    const newData = { date: dateValue };
+  if (!existingData) {
     parts.forEach(p => { newData[p] = '-'; });
-    newData[partValue] = nameValue;
-    dutyList.push(newData);
   }
+  newData[partValue] = nameValue;
 
-  dutyList.sort((a, b) => new Date(a.date) - new Date(b.date));
-  workerInput.value = '';
-  renderTable();
+  db.collection("duties").doc(dateValue).set(newData)
+    .then(() => {
+      if (workerInput) workerInput.value = '';
+    })
+    .catch((error) => {
+      console.error("저장 실패: ", error);
+      alert('저장에 실패했습니다.');
+    });
 };
 
 // ==========================================
-// 8. 엑셀 파일 업로드 처리 함수
+// 8. 엑셀 파일 업로드 처리 함수 (파이어베이스 저장)
 // ==========================================
 const uploadExcel = () => {
   const fileInput = document.getElementById('excelFile');
@@ -190,31 +222,29 @@ const uploadExcel = () => {
       if (!formattedDate) return;
 
       let existingData = dutyList.find(item => item.date == formattedDate);
+      let newData = existingData ? { ...existingData } : { date: String(formattedDate) };
 
-      if (existingData) {
-        parts.forEach(p => {
-          if (row[p]) existingData[p] = row[p];
-        });
-      } else {
-        let newData = { date: String(formattedDate) };
-        parts.forEach(p => {
-          newData[p] = row[p] || '-';
-        });
-        dutyList.push(newData);
+      if (!existingData) {
+        parts.forEach(p => { newData[p] = '-'; });
       }
+
+      parts.forEach(p => {
+        if (row[p]) newData[p] = row[p];
+      });
+
+      db.collection("duties").doc(String(formattedDate)).set(newData)
+        .catch(err => console.error("엑셀 업로드 저장 오류:", err));
     });
 
-    dutyList.sort((a, b) => new Date(a.date) - new Date(b.date));
-    renderTable();
-    alert(`총 ${excelData.length}건의 당직 데이터가 등록되었습니다!`);
-    fileInput.value = '';
+    alert(`총 ${excelData.length}건의 당직 데이터가 클라우드에 반영되었습니다!`);
+    if (fileInput) fileInput.value = '';
   };
 
   reader.readAsArrayBuffer(file);
 };
 
 // ==========================================
-// 9. 초기화 및 이벤트 연결
+// 9. 초기화 및 실시간 감시 시작
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   const excelBtn = document.getElementById('excelBtn');
@@ -223,7 +253,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
   if (registerBtn) registerBtn.addEventListener('click', addDuty);
-  if (dutyDateInput) dutyDateInput.value = new Date().toISOString().substring(0, 10);
+  if (dutyDateInput && !dutyDateInput.value) {
+    dutyDateInput.value = new Date().toISOString().substring(0, 10);
+  }
 
-  renderTable();
+  // 실시간 데이터 로드 시작
+  loadDutyDataRealtime();
 });
