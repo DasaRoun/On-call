@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>다사로운 당직 관리 시스템</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 엑셀 파일 읽기 라이브러리 -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>📅 다사로운 당직 관리 시스템</h1>
+
+    <!-- 1. 엑셀 업로드 구역 -->
+    <div class="card excel-card">
+      <h3>📁 엑셀 파일로 일괄 등록</h3>
+      <p class="excel-guide">엑셀 첫 행의 열 이름을 <b>[날짜, 무선, 고객, 유선1, 유선2]</b>로 맞추어 업로드해 주세요.</p>
+      <div class="excel-upload-group">
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+        <button id="excelBtn" type="button">엑셀 업로드</button>
+      </div>
+    </div>
+
+    <!-- 2. 개별 직접 등록 구역 -->
+    <div class="card">
+      <h3>✏️ 개별 직접 등록</h3>
+      <div class="form-group">
+        <label for="dutyDate">날짜 선택</label>
+        <input type="date" id="dutyDate">
+      </div>
+      <div class="form-group">
+        <label for="partSelect">파트 선택</label>
+        <select id="partSelect">
+          <option value="무선">무선</option>
+          <option value="고객">고객</option>
+          <option value="유선1">유선1</option>
+          <option value="유선2">유선2</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="workerName">당직자 이름</label>
+        <input type="text" id="workerName" placeholder="예: 홍길동">
+      </div>
+      <button id="registerBtn" type="button">당직 등록하기</button>
+    </div>
+
+    <!-- 3. 당직 표 구역 -->
+    <div class="card">
+      <h3>📋 당직 현황표</h3>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th>무선</th>
+              <th>고객</th>
+              <th>유선1</th>
+              <th>유선2</th>
+            </tr>
+          </thead>
+          <tbody id="dutyTableBody">
+            <!-- 자바스크립트로 데이터가 추가됩니다 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
