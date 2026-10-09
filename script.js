@@ -110,7 +110,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수 (오늘 날짜 정확한 중앙 자동 스크롤)
+// 5. 표 화면에 그려주는 함수 (전체 스케줄 표시 + 오늘 날짜 중앙 자동 스크롤)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -124,7 +124,7 @@ const renderTable = () => {
 
   let todayRowElement = null;
 
-  // 🌟 한국 시간(YYYY-MM-DD) 기준으로 오늘 날짜 정확히 구하기
+  // 한국 시간(YYYY-MM-DD) 기준으로 오늘 날짜 정확히 구하기
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -155,17 +155,10 @@ const renderTable = () => {
     }
   });
 
-  // 🌟 표가 완전히 그려진 후 확실하게 스크롤 이동 (지연 시간 100ms 부여)
+  // 🌟 연파란색으로 표시된 오늘 날짜 행이 무조건 스크롤 박스 정중앙에 오도록 이동
   setTimeout(() => {
-    const container = document.querySelector('.table-responsive');
-    if (container) {
-      if (todayRowElement) {
-        // 오늘 날짜가 있으면 그 위치를 스크롤 박스 중앙에 배치
-        container.scrollTop = todayRowElement.offsetTop - container.offsetTop - (container.clientHeight / 2) + (todayRowElement.clientHeight / 2);
-      } else {
-        // 만약 오늘 날짜 데이터가 아예 없다면 맨 아래(가장 최신 미래 날짜 쪽)로 스크롤 이동
-        container.scrollTop = container.scrollHeight;
-      }
+    if (todayRowElement) {
+      todayRowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, 100);
 };
@@ -338,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
   if (registerBtn) registerBtn.addEventListener('click', addDuty);
   
-  // 🌟 한국 시간(KST) 기준으로 날짜 선택(input) 기본값 오늘로 설정
+  // 한국 시간(KST) 기준으로 날짜 선택(input) 기본값 오늘로 설정
   if (dutyDateInput && !dutyDateInput.value) {
     const now = new Date();
     const year = now.getFullYear();
