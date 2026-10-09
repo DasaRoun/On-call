@@ -187,3 +187,11 @@ th {
   background-color: #ff4d4f;
   color: white;
 }
+
+/* 당직 현황표 스크롤 영역 설정 */
+.table-responsive {
+  max-height: 450px; 
+  overflow-y: auto;  
+  border: 1px solid #eee;
+  border-radius: 6px;
+}
