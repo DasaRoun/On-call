@@ -81,7 +81,7 @@ const formatFormattedDate = (dateString) => {
 };
 
 // ==========================================
-// 3. 다중 당직자 이름 태그 생성 (클릭 시 개별 삭제 & 가로 나열)
+// 3. 다중 당직자 이름 태그 생성 (클릭 시 개별 삭제 & 세로 줄바꿈)
 // ==========================================
 const formatWorkers = (workers, date, part) => {
   let workerList = [];
@@ -94,10 +94,10 @@ const formatWorkers = (workers, date, part) => {
   if (workerList.length === 0) return '-';
 
   return workerList.map((name, index) => `
-    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-right: 4px; margin-bottom: 4px; display: inline-block;">
+    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-bottom: 4px; display: inline-block;">
       ${name}
     </span>
-  `).join(' '); // 👈 '<br>' 대신 빈칸(' ')으로 변경하여 가로로 정렬
+  `).join('<br>'); // 👈 이 부분을 다시 '<br>'로 변경해 줍니다!
 };
 
 // ==========================================
