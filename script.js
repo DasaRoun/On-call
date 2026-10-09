@@ -110,7 +110,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수 (전체 스케줄 표시 + 오늘 날짜 중앙 자동 스크롤)
+// 5. 표 화면에 그려주는 함수 (오늘 날짜 정확한 중앙 자동 스크롤)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -123,16 +123,22 @@ const renderTable = () => {
   }
 
   let todayRowElement = null;
-  const todayString = new Date().toISOString().substring(0, 10); // "2026-10-09" 형태
 
-  // 🌟 전체 스케줄(dutyList)을 제한 없이 모두 렌더링합니다.
+  // 🌟 한국 시간(YYYY-MM-DD) 기준으로 오늘 날짜 정확히 구하기
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayString = `${year}-${month}-${day}`; // 예: "2026-10-09"
+
+  // 전체 스케줄 렌더링
   dutyList.forEach((item) => {
     const tr = document.createElement('tr');
     
-    // 오늘 날짜 행 구분을 위한 처리 및 하이라이트
+    // 오늘 날짜 행 체크 및 하이라이트
     if (item.date === todayString) {
       tr.id = 'today-row';
-      tr.style.backgroundColor = '#e8f4fd'; // 오늘 날짜 연한 하늘색 배경 하이라이트
+      tr.style.backgroundColor = '#e8f4fd'; // 연한 하늘색 하이라이트
     }
 
     const dateHtml = formatFormattedDate(item.date);
@@ -149,15 +155,19 @@ const renderTable = () => {
     }
   });
 
-  // 🌟 표가 그려진 직후 오늘 날짜가 스크롤 박스 중앙에 오도록 자동 이동
+  // 🌟 표가 완전히 그려진 후 확실하게 스크롤 이동 (지연 시간 100ms 부여)
   setTimeout(() => {
-    if (todayRowElement) {
-      const container = document.querySelector('.table-responsive');
-      if (container) {
+    const container = document.querySelector('.table-responsive');
+    if (container) {
+      if (todayRowElement) {
+        // 오늘 날짜가 있으면 그 위치를 스크롤 박스 중앙에 배치
         container.scrollTop = todayRowElement.offsetTop - container.offsetTop - (container.clientHeight / 2) + (todayRowElement.clientHeight / 2);
+      } else {
+        // 만약 오늘 날짜 데이터가 아예 없다면 맨 아래(가장 최신 미래 날짜 쪽)로 스크롤 이동
+        container.scrollTop = container.scrollHeight;
       }
     }
-  }, 50);
+  }, 100);
 };
 
 // ==========================================
