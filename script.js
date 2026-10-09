@@ -47,7 +47,7 @@ const checkAdminAuthOnStart = () => {
 
   while (true) {
     const password = prompt('관리자 비밀번호를 입력하세요:');
-    if (password === '1234') {
+    if (password === '0070') {
       sessionStorage.setItem('isAdminAuth', 'true');
       alert('관리자 인증이 완료되었습니다!');
       break;
