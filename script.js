@@ -41,14 +41,13 @@ let dutyList = [];
 // 🌟 접속 시 최초 1회 관리자 인증 함수
 // ==========================================
 const checkAdminAuthOnStart = () => {
-  // 이미 세션에 인증 기록이 있다면 패스
   if (sessionStorage.getItem('isAdminAuth') === 'true') {
     return;
   }
 
   while (true) {
     const password = prompt('관리자 비밀번호를 입력하세요:');
-    if (password === '0070') { // 원하시는 비밀번호 설정
+    if (password === '1234') {
       sessionStorage.setItem('isAdminAuth', 'true');
       alert('관리자 인증이 완료되었습니다!');
       break;
@@ -63,7 +62,7 @@ const checkAdminAuthOnStart = () => {
 // ==========================================
 const formatFormattedDate = (dateString) => {
   const date = new Date(dateString);
-  const dayIndex = date.getDay(); // 0: 일, 1: 월 ... 6: 토
+  const dayIndex = date.getDay(); 
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const monthDay = dateString.substring(5);
 
@@ -145,21 +144,18 @@ const renderTable = () => {
 
   let todayRowElement = null;
 
-  // 한국 시간(YYYY-MM-DD) 기준으로 오늘 날짜 정확히 구하기
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
-  const todayString = `${year}-${month}-${day}`; // 예: "2026-10-09"
+  const todayString = `${year}-${month}-${day}`;
 
-  // 전체 스케줄 렌더링
   dutyList.forEach((item) => {
     const tr = document.createElement('tr');
     
-    // 오늘 날짜 행 체크 및 하이라이트
     if (item.date === todayString) {
       tr.id = 'today-row';
-      tr.style.backgroundColor = '#e8f4fd'; // 연한 하늘색 하이라이트
+      tr.style.backgroundColor = '#e8f4fd'; 
     }
 
     const dateHtml = formatFormattedDate(item.date);
@@ -176,7 +172,6 @@ const renderTable = () => {
     }
   });
 
-  // 🌟 연파란색으로 표시된 오늘 날짜 행이 무조건 스크롤 박스 정중앙에 오도록 이동
   setTimeout(() => {
     if (todayRowElement) {
       todayRowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -208,11 +203,188 @@ const deleteSingleWorker = (date, part, index) => {
   if (targetData) {
     let workerList = Array.isArray(targetData[part]) ? targetData[part] : (targetData[part] && targetData[part] !== '-' ? [targetData[part]] : []);
     
-    // 해당 인덱스의 인물 제거
     workerList.splice(index, 1);
     targetData[part] = workerList;
 
-    // 모든 파트가 완전히 비었는지 확인
     const isEmpty = parts.every(p => {
       const list = targetData[p];
-      return !list || (Array.isArray(list) && list.length === 0) || list
+      return !list || (Array.isArray(list) && list.length === 0) || list === '-';
+    });
+
+    if (isEmpty) {
+      db.collection("duties").doc(date).delete().catch(err => console.error(err));
+    } else {
+      db.collection("duties").doc(date).set(targetData).catch(err => console.error(err));
+    }
+  }
+};
+
+// ==========================================
+// 7. 개별 직접 등록 함수 (비번 검사 제거)
+// ==========================================
+const addDuty = () => {
+  const dateInput = document.getElementById('dutyDate');
+  const partSelect = document.getElementById('partSelect');
+  const workerInput = document.getElementById('workerName');
+
+  const dateValue = dateInput ? dateInput.value : '';
+  const partValue = partSelect ? partSelect.value : '';
+  const nameValue = workerInput ? workerInput.value.trim() : '';
+
+  if (!dateValue || !nameValue) {
+    alert('날짜와 당직자 이름을 모두 입력해 주세요!');
+    return;
+  }
+
+  let existingData = dutyList.find(item => item.date === dateValue);
+  let newData = existingData ? { ...existingData } : { date: dateValue };
+
+  if (!existingData) {
+    parts.forEach(p => { newData[p] = []; });
+  }
+
+  if (!Array.isArray(newData[partValue])) {
+    newData[partValue] = newData[partValue] && newData[partValue] !== '-' ? [newData[partValue]] : [];
+  }
+
+  newData[partValue].push(nameValue);
+
+  db.collection("duties").doc(dateValue).set(newData)
+    .then(() => {
+      if (workerInput) workerInput.value = '';
+    })
+    .catch((error) => {
+      console.error("저장 실패: ", error);
+      alert('저장에 실패했습니다.');
+    });
+};
+
+// ==========================================
+// 8. 엑셀 파일 업로드 처리 함수 (비번 검사 제거)
+// ==========================================
+const uploadExcel = () => {
+  const fileInput = document.getElementById('excelFile');
+  const file = fileInput.files ? fileInput.files[0] : null;
+
+  if (!file) {
+    alert('업로드할 엑셀 파일을 먼저 선택해 주세요!');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const excelData = XLSX.utils.sheet_to_json(worksheet);
+
+    if (excelData.length === 0) {
+      alert('엑셀 파일에 데이터가 없습니다.');
+      return;
+    }
+
+    const batch = db.batch();
+
+    excelData.forEach(row => {
+      let formattedDate = row['날짜'];
+      if (!formattedDate) return;
+
+      if (typeof formattedDate === 'number') {
+        const excelEpoch = new Date(1899, 11, 30);
+        const jsDate = new Date(excelEpoch.getTime() + formattedDate * 86400000);
+        formattedDate = jsDate.toISOString().split('T')[0];
+      }
+
+      const dateStr = String(formattedDate);
+      let existingData = dutyList.find(item => item.date == dateStr);
+      let newData = existingData ? { ...existingData } : { date: dateStr };
+
+      if (!existingData) {
+        parts.forEach(p => { newData[p] = []; });
+      }
+
+      parts.forEach(p => {
+        if (row[p] !== undefined && row[p] !== null && row[p] !== '') {
+          const names = String(row[p]).split(',').map(s => s.trim()).filter(s => s);
+          newData[p] = names;
+        } else if (!newData[p]) {
+          newData[p] = [];
+        }
+      });
+
+      const docRef = db.collection("duties").doc(dateStr);
+      batch.set(docRef, newData);
+    });
+
+    batch.commit().then(() => {
+      alert(`총 ${excelData.length}건의 당직 데이터가 클라우드에 반영되었습니다!`);
+      if (fileInput) fileInput.value = '';
+    }).catch(err => {
+      console.error("엑셀 일괄 업로드 저장 오류:", err);
+      alert('엑셀 업로드 중 오류가 발생했습니다.');
+    });
+  };
+
+  reader.readAsArrayBuffer(file);
+};
+
+// ==========================================
+// 9. 현재 당직표 엑셀 다운로드 함수
+// ==========================================
+const downloadExcel = () => {
+  if (!dutyList || dutyList.length === 0) {
+    alert('다운로드할 당직 데이터가 없습니다.');
+    return;
+  }
+
+  const excelData = dutyList.map(item => {
+    return {
+      '날짜': item.date,
+      '무선': Array.isArray(item['무선']) ? item['무선'].join(', ') : (item['무선'] || ''),
+      '고객': Array.isArray(item['고객']) ? item['고객'].join(', ') : (item['고객'] || ''),
+      '유선1': Array.isArray(item['유선1']) ? item['유선1'].join(', ') : (item['유선1'] || ''),
+      '유선2': Array.isArray(item['유선2']) ? item['유선2'].join(', ') : (item['유선2'] || '')
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "당직표");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  
+  XLSX.writeFile(workbook, `당직현황표_${year}-${month}-${day}.xlsx`);
+};
+
+// ==========================================
+// 10. 초기화 및 이벤트 연결 시작
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  // 🌟 접속 시 최초 1회 비밀번호 체크 실행
+  checkAdminAuthOnStart();
+
+  const excelBtn = document.getElementById('excelBtn');
+  const registerBtn = document.getElementById('registerBtn');
+  const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+  const dutyDateInput = document.getElementById('dutyDate');
+
+  if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
+  if (registerBtn) registerBtn.addEventListener('click', addDuty);
+  if (downloadExcelBtn) downloadExcelBtn.addEventListener('click', downloadExcel);
+  
+  if (dutyDateInput && !dutyDateInput.value) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    dutyDateInput.value = `${year}-${month}-${day}`;
+  }
+
+  loadDutyDataRealtime();
+});
