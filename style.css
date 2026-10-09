@@ -180,3 +180,26 @@ th {
   background-color: #ff4d4f;
   color: white;
 }
+
+/* 📱 모바일 화면 최적화 (화면 너비 600px 이하일 때 적용) */
+@media screen and (max-width: 600px) {
+  body {
+    padding: 10px; /* 모바일 양옆 여백을 줄여서 전체 공간 확보 */
+  }
+
+  .card {
+    padding: 12px; /* 카드 내부 여백 축소 */
+  }
+
+  /* 날짜 입력칸 글자 잘림 방지 */
+  input[type="date"], select, input[type="text"] {
+    font-size: 0.85rem;
+    padding: 8px;
+  }
+
+  /* 표(Table) 글자 크기와 패딩을 줄여서 '유선2' 등 글자 잘림 방지 */
+  th, td {
+    padding: 8px 4px;
+    font-size: 0.8rem;
+  }
+}
