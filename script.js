@@ -55,7 +55,7 @@ const submitAdminPassword = () => {
   const passwordInput = document.getElementById('modalPassword');
   const password = passwordInput ? passwordInput.value : '';
 
-  if (password === '1234') { // 관리자 비밀번호
+  if (password === '0070') { // 관리자 비밀번호
     sessionStorage.setItem('isAdminAuth', 'true');
     const modal = document.getElementById('authModal');
     if (modal) {
