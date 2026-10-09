@@ -2,135 +2,183 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background-color: #f0f2f5;
-  padding: 12px; /* 모바일에서 주변 여백을 슬림하게 조정 */
+  background-color: #f2f2f7; /* 애플 iOS 시스템 배경색 */
+  padding: 16px 12px;
   display: flex;
   justify-content: center;
+  color: #1c1c1e;
 }
 
 .container {
   width: 100%;
-  max-width: 600px; /* 모바일 화면에 최적화된 최대 너비 설정 */
+  max-width: 580px;
 }
 
+/* 상단 메인 타이틀 (iOS 앱 타이틀 스타일) */
 h1 {
   text-align: center;
-  margin-bottom: 15px;
-  color: #333;
-  font-size: 1.4rem; /* 모바일 표준 제목 크기 */
+  margin-bottom: 22px;
+  color: #000000;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.4px;
 }
 
+/* 🍏 애플 스타일 그룹드 카드 (부드러운 그림자와 둥근 모서리) */
 .card {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  margin-bottom: 15px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+  margin-bottom: 16px;
+  border: none;
 }
 
 .card h3 {
-  margin-bottom: 10px;
-  color: #444;
-  border-left: 4px solid #007bff;
-  padding-left: 8px;
-  font-size: 1.05rem;
+  margin-bottom: 14px;
+  color: #1c1c1e;
+  font-size: 1.02rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.3px;
 }
 
-/* 엑셀 박스 스타일 */
+/* 📁 엑셀 파일 관리 구역 */
 .excel-card {
-  border: 2px dashed #28a745;
-  background-color: #f8fff9;
+  background-color: #ffffff;
 }
 
 .excel-guide {
-  font-size: 0.8rem;
-  color: #555;
-  margin-bottom: 10px;
-  line-height: 1.3;
+  font-size: 0.82rem;
+  color: #8e8e93;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
 }
 
 .excel-upload-group {
   display: flex;
-  flex-direction: column; /* 모바일에서 세로 정렬 */
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .excel-upload-group input {
-  width: 100%;
-  background: white;
+  background: #f2f2f7;
   font-size: 0.85rem;
-}
-
-#excelBtn {
-  width: 100%;
-  padding: 10px;
-  background-color: #28a745;
-  color: white;
+  padding: 12px;
+  border-radius: 12px;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 0.9rem;
-  cursor: pointer;
+  color: #3a3a3c;
 }
 
-#excelBtn:hover {
-  background-color: #218838;
+/* 엑셀 버튼 가로 배치 그룹 */
+.excel-btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 /* 개별 등록 폼 스타일 */
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 label {
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #555;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #8e8e93;
+  letter-spacing: -0.2px;
 }
 
 input, select {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.95rem; /* 모바일에서 입력하기 편한 글자 크기 */
-  width: 100%;
-}
-
-#registerBtn {
-  width: 100%;
-  padding: 11px;
-  background-color: #007bff;
-  color: white;
+  padding: 12px 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px; /* iOS 입력창 스타일 */
   font-size: 0.95rem;
-  font-weight: bold;
+  width: 100%;
+  background-color: #f2f2f7;
+  color: #1c1c1e;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus {
+  background-color: #e5e5ea;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+
+/* 🍏 애플 시스템 버튼 스타일 (클릭 시 쫀득하게 눌리는 효과) */
+button, #registerBtn, #excelBtn, #downloadExcelBtn, #historyBtn {
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 5px;
+  transition: transform 0.1s ease, opacity 0.2s;
+  letter-spacing: -0.3px;
 }
 
-#registerBtn:hover {
-  background-color: #0056b3;
+.excel-btn-group button {
+  width: 50%;
 }
 
-/* 당직 현황표 스크롤 영역 설정 */
+button:active, #registerBtn:active, #excelBtn:active, #downloadExcelBtn:active, #historyBtn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* 1. 당직 등록하기 버튼 (애플 시그니처 블루) */
+#registerBtn {
+  background: #007aff;
+  color: white;
+  margin-top: 6px;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+/* 2. 엑셀 업로드 버튼 (애플그린 톤) */
+#excelBtn {
+  background: #34c759;
+  color: white;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.25);
+}
+
+/* 3. 엑셀 다운로드 버튼 (스카이 블루 톤) */
+#downloadExcelBtn {
+  background: #5ac8fa;
+  color: white;
+  box-shadow: 0 4px 12px rgba(90, 200, 250, 0.25);
+}
+
+/* 4. 변경 이력 버튼 (애플 시스템 그레이) */
+#historyBtn {
+  background: #8e8e93;
+  color: white;
+  box-shadow: 0 4px 12px rgba(142, 142, 147, 0.25);
+}
+
+/* 당직 현황표 스크롤 영역 */
 .table-responsive {
   width: 100%;
-  max-height: 400px; /* 화면에 5~6줄 정도 보이도록 높이 설정 */
-  overflow-y: auto;  /* 세로 스크롤바 활성화 */
-  overflow-x: auto;  /* 가로 스크롤바 활성화 */
-  border: 1px solid #eee;
-  border-radius: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 14px;
+  background-color: #ffffff;
 }
 
-/* 표(Table) 스타일 - 모바일 맞춤 촘촘한 간격 */
+/* 표(Table) 스타일 */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -139,59 +187,63 @@ table {
 }
 
 th, td {
-  padding: 8px 4px; /* 여백을 좁혀서 '유선2'까지 한 화면에 들어가도록 유도 */
-  border-bottom: 1px solid #ddd;
-  font-size: 0.82rem; /* 모바일에 최적화된 표 글자 크기 */
+  padding: 11px 8px;
+  border-bottom: 1px solid #f2f2f7;
+  font-size: 0.82rem;
   vertical-align: middle;
 }
 
-/* 🌟 스크롤 시 상단 헤더(제목 행) 틀 고정 설정 */
+/* 스크롤 시 상단 헤더 고정 (iOS 블러 느낌) */
 th {
   position: sticky;
   top: 0;
-  background-color: #f8f9fa; /* 스크롤 시 내용이 비치지 않도록 배경색 지정 */
-  color: #333;
-  font-weight: bold;
-  z-index: 10; /* 내용물보다 위쪽에 보이도록 설정 */
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  color: #8e8e93;
+  font-weight: 600;
+  z-index: 10;
+  border-bottom: 1px solid #e5e5ea;
 }
 
-/* 🎨 날짜 칸 위아래 줄바꿈 및 간격 최소화 */
+/* 날짜 칸 서식 */
 .date-cell-box {
   text-align: center;
-  line-height: 1.15;
-  font-weight: bold;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
 .holiday-name {
-  font-size: 0.75rem;
-  font-weight: normal;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #ff3b30; /* 애플 시스템 레드 */
 }
 
 .date-sat {
-  color: #0056b3;
+  color: #007aff; /* 애플 시스템 블루 */
 }
 
 .date-sun-holiday {
-  color: #d9363e;
+  color: #ff3b30;
 }
 
 .date-normal {
-  color: #333333;
+  color: #1c1c1e;
 }
 
-/* 🏷️ 당직자 이름 버튼 스타일 */
+/* 🍏 🍎 당직자 이름 알약 뱃지 (iOS 캡슐 스타일) */
 .name-tag {
   display: inline-block;
-  background-color: #e9ecef;
-  padding: 4px 8px;
-  border-radius: 4px;
+  background-color: #f2f2f7;
+  padding: 4px 10px;
+  border-radius: 20px;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 0.8rem;
-  color: #333;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: #1c1c1e;
+  transition: all 0.2s ease;
 }
 
 .name-tag:hover {
-  background-color: #ff4d4f;
-  color: white;
+  background-color: #ffe5e5;
+  color: #ff3b30;
 }
