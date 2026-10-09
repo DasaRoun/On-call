@@ -203,3 +203,11 @@ th {
     font-size: 0.8rem;
   }
 }
+
+/* 📱 모바일 화면에서 표 간격 최적화 */
+@media screen and (max-width: 600px) {
+  th, td {
+    padding: 8px 3px;     /* 칸 좌우 여백을 더 좁게 줄입니다 */
+    font-size: 0.8rem;    /* 글자 크기를 살짝 줄여 공간을 확보합니다 */
+  }
+}
