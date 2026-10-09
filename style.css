@@ -120,10 +120,14 @@ input, select {
   background-color: #0056b3;
 }
 
-/* 표 반응형 가로 스크롤 감싸기 */
+/* 당직 현황표 스크롤 영역 설정 */
 .table-responsive {
   width: 100%;
-  overflow-x: auto;
+  max-height: 400px; /* 화면에 5~6줄 정도 보이도록 높이 설정 */
+  overflow-y: auto;  /* 세로 스크롤바 활성화 */
+  overflow-x: auto;  /* 가로 스크롤바 활성화 */
+  border: 1px solid #eee;
+  border-radius: 6px;
 }
 
 /* 표(Table) 스타일 - 모바일 맞춤 촘촘한 간격 */
@@ -141,10 +145,14 @@ th, td {
   vertical-align: middle;
 }
 
+/* 🌟 스크롤 시 상단 헤더(제목 행) 틀 고정 설정 */
 th {
-  background-color: #f8f9fa;
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa; /* 스크롤 시 내용이 비치지 않도록 배경색 지정 */
   color: #333;
   font-weight: bold;
+  z-index: 10; /* 내용물보다 위쪽에 보이도록 설정 */
 }
 
 /* 🎨 날짜 칸 위아래 줄바꿈 및 간격 최소화 */
@@ -186,12 +194,4 @@ th {
 .name-tag:hover {
   background-color: #ff4d4f;
   color: white;
-}
-
-/* 당직 현황표 스크롤 영역 설정 */
-.table-responsive {
-  max-height: 400px; /* 화면에 5~6줄 정도 보이도록 높이 설정 */
-  overflow-y: auto;  /* 세로 스크롤바 활성화 */
-  border: 1px solid #eee;
-  border-radius: 6px;
 }
