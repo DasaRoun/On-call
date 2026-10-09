@@ -17,29 +17,34 @@
   <div class="container">
     <h1>📅 당직 관리 시스템</h1>
 
-    <!-- 1. 개별 직접 등록 구역 (맨 위로 이동) -->
+    <!-- 1. 개별 직접 등록 구역 -->
     <div class="card">
       <h3>✏️ 개별 직접 등록</h3>
-      <div class="form-group">
-        <label for="dutyDate">날짜 선택</label>
-        <input type="date" id="dutyDate">
+      
+      <!-- 🌟 가로 배치를 위한 감싸는 태그 추가 -->
+      <div class="form-row" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px;">
+        <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+          <label for="dutyDate">날짜 선택</label>
+          <input type="date" id="dutyDate">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 100px; margin-bottom: 0;">
+          <label for="partSelect">파트 선택</label>
+          <select id="partSelect">
+            <option value="무선">무선</option>
+            <option value="고객">고객</option>
+            <option value="유선1">유선1</option>
+            <option value="유선2">유선2</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 1.5; min-width: 130px; margin-bottom: 0;">
+          <label for="workerName">당직자 이름</label>
+          <input type="text" id="workerName" placeholder="예: 홍길동">
+        </div>
       </div>
-      <div class="form-group">
-        <label for="partSelect">파트 선택</label>
-        <select id="partSelect">
-          <option value="무선">무선</option>
-          <option value="고객">고객</option>
-          <option value="유선1">유선1</option>
-          <option value="유선2">유선2</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="workerName">당직자 이름</label>
-        <input type="text" id="workerName" placeholder="예: 홍길동">
-      </div>
-      <button id="registerBtn" type="button">당직 등록하기</button>
-    </div>
 
+      <button id="registerBtn" type="button" style="width: 100%;">당직 등록하기</button>
+    </div>
+    
     <!-- 2. 당직 표 구역 (중앙 배치) -->
     <div class="card">
       <h3>📋 당직 현황표</h3>
