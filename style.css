@@ -205,6 +205,23 @@ th {
   border-bottom: 1px solid #e5e5ea;
 }
 
+/* 🌟 좌우 스크롤 시 날짜 열(첫 번째 칸) 틀 고정 */
+th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 20; /* 헤더들 중에서 가장 위에 오도록 설정 */
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background-color: #ffffff; /* 스크롤 시 뒷 내용이 비치지 않도록 흰색 배경 지정 */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02); /* 오른쪽 경계에 미세한 입체감 그림자 */
+}
+
 /* 날짜 칸 서식 */
 .date-cell-box {
   text-align: center;
