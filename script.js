@@ -183,7 +183,7 @@ const loadDutyDataRealtime = () => {
 // ==========================================
 const deleteSingleWorker = (date, part, index) => {
   const password = prompt('관리자 비밀번호를 입력하세요:');
-  if (password !== '1234') {
+  if (password !== '0070') {
     alert('비밀번호가 틀렸습니다!');
     return;
   }
