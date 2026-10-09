@@ -110,7 +110,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수 (오늘 기준 앞뒤 7일 필터링 + 스크롤)
+// 5. 표 화면에 그려주는 함수 (오늘 기준 앞뒤 7일 필터링 + 오늘 날짜 중앙 스크롤)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -132,7 +132,6 @@ const renderTable = () => {
   const futureLimit = new Date(today);
   futureLimit.setDate(today.getDate() + 7); // 7일 후
 
-  // 🌟 'T00:00:00'을 붙여야 날짜가 누락되지 않고 정확히 필터링됩니다!
   const filteredList = dutyList.filter(item => {
     const itemDate = new Date(item.date + 'T00:00:00');
     return itemDate >= pastLimit && itemDate <= futureLimit;
@@ -143,10 +142,19 @@ const renderTable = () => {
     return;
   }
 
+  let todayRowElement = null;
+  const todayString = new Date().toISOString().substring(0, 10); // "2026-10-09" 형태
+
   filteredList.forEach((item) => {
     const tr = document.createElement('tr');
-    const dateHtml = formatFormattedDate(item.date);
+    
+    // 오늘 날짜 행에 특별히 ID나 구분을 부여하기 위해 체크
+    if (item.date === todayString) {
+      tr.id = 'today-row';
+      tr.style.backgroundColor = '#e8f4fd'; // 오늘 날짜 표에 연한 하늘색 하이라이트 효과 (선택사항)
+    }
 
+    const dateHtml = formatFormattedDate(item.date);
     let partsHtml = parts.map(p => `<td>${formatWorkers(item[p], item.date, p)}</td>`).join('');
 
     tr.innerHTML = `
@@ -154,7 +162,22 @@ const renderTable = () => {
       ${partsHtml}
     `;
     tbody.appendChild(tr);
+
+    if (item.date === todayString) {
+      todayRowElement = tr;
+    }
   });
+
+  // 🌟 표가 그려진 직후 오늘 날짜가 스크롤 박스 중앙에 오도록 자동 이동
+  setTimeout(() => {
+    if (todayRowElement) {
+      const container = document.querySelector('.table-responsive');
+      if (container) {
+        // 컨테이너 높이의 절반 위치에 오늘 날짜 행이 오도록 계산
+        container.scrollTop = todayRowElement.offsetTop - container.offsetTop - (container.clientHeight / 2) + (todayRowElement.clientHeight / 2);
+      }
+    }
+  }, 50);
 };
 
 // ==========================================
