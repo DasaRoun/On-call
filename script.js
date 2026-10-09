@@ -331,3 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 실시간 데이터 로드 시작
   loadDutyDataRealtime();
 });
+
+/* 당직 현황표 스크롤 영역 설정 */
+.table-responsive {
+  max-height: 450px; /* 원하는 높이로 조절 가능합니다 */
+  overflow-y: auto;  /* 세로 스크롤바 활성화 */
+  border: 1px solid #eee;
+  border-radius: 6px;
+}
