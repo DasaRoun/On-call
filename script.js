@@ -110,7 +110,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수
+// 5. 표 화면에 그려주는 함수 (오늘 기준 앞뒤 7일만 필터링 + 스크롤)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -122,7 +122,28 @@ const renderTable = () => {
     return;
   }
 
-  dutyList.forEach((item) => {
+  // 🌟 오늘 날짜 기준 (2026-10-09) 앞뒤 7일 계산
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const pastLimit = new Date(today);
+  pastLimit.setDate(today.getDate() - 7); // 7일 전
+
+  const futureLimit = new Date(today);
+  futureLimit.setDate(today.getDate() + 7); // 7일 후
+
+  // 필터링: 오늘 기준 앞뒤 7일 범위 내의 날짜만 추출
+  const filteredList = dutyList.filter(item => {
+    const itemDate = new Date(item.date);
+    return itemDate >= pastLimit && itemDate <= futureLimit;
+  });
+
+  if (filteredList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; color: #777;">최근 일주일 내 등록된 당직 정보가 없습니다.</td></tr>`;
+    return;
+  }
+
+  filteredList.forEach((item) => {
     const tr = document.createElement('tr');
     const dateHtml = formatFormattedDate(item.date);
 
