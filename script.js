@@ -38,21 +38,35 @@ const holidays = {
 let dutyList = [];
 
 // ==========================================
-// 🌟 접속 시 최초 1회 관리자 인증 함수
+// 🌟 접속 시 최초 1회 관리자 인증 함수 (모달 및 별표(*) 마스킹 적용)
 // ==========================================
 const checkAdminAuthOnStart = () => {
   if (sessionStorage.getItem('isAdminAuth') === 'true') {
     return;
   }
 
-  while (true) {
-    const password = prompt('관리자 비밀번호를 입력하세요:');
-    if (password === '0070') {
-      sessionStorage.setItem('isAdminAuth', 'true');
-      alert('관리자 인증이 완료되었습니다!');
-      break;
-    } else {
-      alert('비밀번호가 틀렸습니다! 다시 입력해주세요.');
+  const modal = document.getElementById('authModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+};
+
+const submitAdminPassword = () => {
+  const passwordInput = document.getElementById('modalPassword');
+  const password = passwordInput ? passwordInput.value : '';
+
+  if (password === '1234') { // 관리자 비밀번호
+    sessionStorage.setItem('isAdminAuth', 'true');
+    const modal = document.getElementById('authModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+    alert('관리자 인증이 완료되었습니다!');
+  } else {
+    alert('비밀번호가 틀렸습니다! 다시 입력해주세요.');
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.focus();
     }
   }
 };
