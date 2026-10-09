@@ -1,262 +1,205 @@
-// ==========================================
-// 0. 파이어베이스 및 파트 목록 설정
-// ==========================================
+// Firebase 설정 (기존에 사용하시던 설정값 그대로 유지)
 const firebaseConfig = {
-  apiKey: "AIzaSyBSRQl0aE1MPZ28LV82Gik4ZVtNUenukqY",
-  authDomain: "dasarowon-duty.firebaseapp.com",
-  projectId: "dasarowon-duty",
-  storageBucket: "dasarowon-duty.appspot.com",
-  messagingSenderId: "988864759421",
-  appId: "1:988864759421:web:384e950ff06100d0b9d314",
-  measurementId: "G-EPBYBDCQJX"
+  // 사용 중이신 파이어베이스 설정 객체 내용
 };
 
-// 파이어베이스 초기화
-firebase.initializeApp(firebaseConfig);
+// Firebase 초기화 확인
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
-// ==========================================
-// 1. 파트 목록 (고객1팀 ~ 고객7팀) 및 공휴일 정의
-// ==========================================
-const parts = ['무선', '고객', '유선1', '유선2'];
+// 페이지 로드 시 데이터 실시간 불러오기 실행
+document.addEventListener("DOMContentLoaded", () => {
+  loadDutiesRealtime();
+  
+  // 오늘 날짜 기본 세팅
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dutyDate').value = today;
 
-// 주요 법정 공휴일 목록 (MM-DD: 공휴일명)
-const holidays = {
-  '01-01': '신정',
-  '03-01': '삼일절',
-  '05-05': '어린이날',
-  '06-06': '현충일',
-  '08-15': '광복절',
-  '10-03': '개천절',
-  '10-09': '한글날',
-  '12-25': '크리스마스'
-};
+  // 등록 버튼 이벤트 연결
+  document.getElementById('registerBtn').addEventListener('click', registerDuty);
+  // 엑셀 업로드 버튼 이벤트 연결
+  document.getElementById('excelBtn').addEventListener('click', handleExcelUpload);
+});
 
-// 당직자 데이터 저장 배열
-let dutyList = [];
+// 1. 개별 당직 등록 및 추가 (다중 등록 지원)
+function registerDuty() {
+  const dateStr = document.getElementById('dutyDate').value;
+  const part = document.getElementById('partSelect').value;
+  const workerName = document.getElementById('workerName').value.trim();
 
-// ==========================================
-// 2. 날짜 텍스트 및 요일 / 아래 줄 공휴일 서식
-// ==========================================
-const formatFormattedDate = (dateString) => {
-  const date = new Date(dateString);
-  const dayIndex = date.getDay(); // 0: 일, 1: 월 ... 6: 토
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const monthDay = dateString.substring(5);
-
-  let holidayName = holidays[monthDay];
-
-  // 대체 공휴일 자동 계산 (월요일일 경우 주말 공휴일 여부 확인)
-  if (!holidayName && dayIndex === 1) { 
-    const targetHolidays = ['03-01', '05-05', '08-15', '10-03', '10-09', '12-25'];
-    
-    const yesterday = new Date(date);
-    yesterday.setDate(date.getDate() - 1);
-    const yesterdayMd = String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
-    
-    const dayBefore = new Date(date);
-    dayBefore.setDate(date.getDate() - 2);
-    const dayBeforeMd = String(dayBefore.getMonth() + 1).padStart(2, '0') + '-' + String(dayBefore.getDate()).padStart(2, '0');
-
-    if (targetHolidays.includes(yesterdayMd) || targetHolidays.includes(dayBeforeMd)) {
-      holidayName = '대체공휴일';
-    }
-  }
-
-  // 색상 지정 (토: 파랑, 일/공휴일: 빨강, 평일: 검정)
-  let colorClass = 'date-normal';
-  if (dayIndex === 0 || holidayName) {
-    colorClass = 'date-sun-holiday';
-  } else if (dayIndex === 6) {
-    colorClass = 'date-sat';
-  }
-
-  let displayHtml = `${dateString} (${days[dayIndex]})`;
-  if (holidayName) {
-    displayHtml += `<br><span class="holiday-name">${holidayName}</span>`;
-  }
-
-  return `<div class="date-cell-box ${colorClass}">${displayHtml}</div>`;
-};
-
-// ==========================================
-// 3. 당직자 이름 태그 생성 (클릭 이벤트 포함)
-// ==========================================
-const formatNameTag = (date, part, name) => {
-  if (!name || name === '-' || name.trim() === '') return '-';
-  return `
-    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', '${name}')">
-      ${name}
-    </span>
-  `;
-};
-
-// ==========================================
-// 4. 이름 클릭 시 삭제 확인 팝업창
-// ==========================================
-const confirmDeleteWorker = (date, part, name) => {
-  if (confirm(`${name} 님을 삭제하시겠습니까?`)) {
-    deleteSingleWorker(date, part);
-  }
-};
-
-// ==========================================
-// 5. 표 화면에 그려주는 함수
-// ==========================================
-const renderTable = () => {
-  const tbody = document.getElementById('dutyTableBody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  dutyList.forEach((item) => {
-    const tr = document.createElement('tr');
-    const dateHtml = formatFormattedDate(item.date);
-
-    let partsHtml = parts.map(p => `<td>${formatNameTag(item.date, p, item[p])}</td>`).join('');
-
-    tr.innerHTML = `
-      <td>${dateHtml}</td>
-      ${partsHtml}
-    `;
-    tbody.appendChild(tr);
-  });
-};
-
-// ==========================================
-// 🔄 파이어베이스 연동: 실시간 데이터 감시
-// ==========================================
-const loadDutyDataRealtime = () => {
-  db.collection("duties").orderBy("date").onSnapshot((snapshot) => {
-    dutyList = [];
-    snapshot.forEach((doc) => {
-      dutyList.push({ id: doc.id, ...doc.data() });
-    });
-    renderTable();
-  }, (error) => {
-    console.error("실시간 동기화 오류: ", error);
-  });
-};
-
-// ==========================================
-// 6. 특정 파트 당직자 삭제 함수 (파이어베이스 반영)
-// ==========================================
-const deleteSingleWorker = (date, part) => {
-  let targetData = dutyList.find(item => item.date === date);
-
-  if (targetData) {
-    targetData[part] = '-';
-
-    const isEmpty = parts.every(p => !targetData[p] || targetData[p] === '-');
-    if (isEmpty) {
-      db.collection("duties").doc(date).delete().catch(err => console.error(err));
-    } else {
-      db.collection("duties").doc(date).set(targetData).catch(err => console.error(err));
-    }
-  }
-};
-
-// ==========================================
-// 7. 개별 직접 등록 함수 (파이어베이스 저장)
-// ==========================================
-const addDuty = () => {
-  const dateInput = document.getElementById('dutyDate');
-  const partSelect = document.getElementById('partSelect');
-  const workerInput = document.getElementById('workerName');
-
-  const dateValue = dateInput ? dateInput.value : '';
-  const partValue = partSelect ? partSelect.value : '';
-  const nameValue = workerInput ? workerInput.value.trim() : '';
-
-  if (!dateValue || !nameValue) {
-    alert('날짜와 당직자 이름을 모두 입력해 주세요!');
+  if (!dateStr || !workerName) {
+    alert("날짜와 당직자 이름을 모두 입력해 주세요.");
     return;
   }
 
-  let existingData = dutyList.find(item => item.date === dateValue);
-  let newData = existingData ? { ...existingData } : { date: dateValue };
+  const docRef = db.collection('duties').doc(dateStr);
 
-  if (!existingData) {
-    parts.forEach(p => { newData[p] = '-'; });
-  }
-  newData[partValue] = nameValue;
+  db.runTransaction(async (transaction) => {
+    const doc = await transaction.get(docRef);
+    let data = doc.exists ? doc.data() : { date: dateStr, 무선: [], 고객: [], 유선1: [], 유선2: [] };
 
-  db.collection("duties").doc(dateValue).set(newData)
-    .then(() => {
-      if (workerInput) workerInput.value = '';
-    })
-    .catch((error) => {
-      console.error("저장 실패: ", error);
-      alert('저장에 실패했습니다.');
+    // 파트별 데이터가 배열이 아닌 경우 대비 (이전 데이터 호환)
+    if (!Array.isArray(data[part])) {
+      data[part] = data[part] ? [data[part]] : [];
+    }
+
+    // 새로운 당직자 추가 (중복 허용 또는 추가)
+    data[part].push(workerName);
+
+    transaction.set(docRef, data);
+  }).then(() => {
+    document.getElementById('workerName').value = '';
+    alert("당직자가 성공적으로 추가되었습니다!");
+  }).catch((error) => {
+    console.error("등록 실패: ", error);
+    alert("등록 중 오류가 발생했습니다.");
+  });
+}
+
+// 2. Firestore 실시간 데이터 동기화 및 테이블 렌더링
+function loadDutiesRealtime() {
+  const tableBody = document.getElementById('dutyTableBody');
+
+  db.collection('duties').orderBy('date', 'desc').onSnapshot((snapshot) => {
+    tableBody.innerHTML = '';
+
+    if (snapshot.empty) {
+      tableBody.innerHTML = `<tr><td colspan="5" style="padding: 20px; color: #777;">등록된 당직 정보가 없습니다.</td></tr>`;
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const rowData = doc.data();
+      const dateStr = rowData.date;
+
+      // 날짜 스타일 (주말/공휴일 판별)
+      const dateClassInfo = getFormattedDateHtml(dateStr);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="date-cell-box ${dateClassInfo.className}">${dateClassInfo.html}</td>
+        <td>${formatWorkers(rowData.무선, dateStr, '무선')}</td>
+        <td>${formatWorkers(rowData.고객, dateStr, '고객')}</td>
+        <td>${formatWorkers(rowData.유선1, dateStr, '유선1')}</td>
+        <td>${formatWorkers(rowData.유선2, dateStr, '유선2')}</td>
+      `;
+      tableBody.appendChild(tr);
     });
-};
+  });
+}
 
-// ==========================================
-// 8. 엑셀 파일 업로드 처리 함수 (파이어베이스 저장)
-// ==========================================
-const uploadExcel = () => {
+// 당직자 목록을 HTML 태그로 변환 (클릭 시 개별 삭제 기능 포함)
+function formatWorkers(workers, dateStr, partKey) {
+  if (!workers) return '-';
+  
+  // 단일 문자열로 저장되어 있던 과거 데이터 대응
+  let workerList = Array.isArray(workers) ? workers : [workers];
+  if (workerList.length === 0) return '-';
+
+  return workerList.map((name, index) => `
+    <span class="name-tag" onclick="removeWorker('${dateStr}', '${partKey}', ${index})" title="클릭시 삭제">${name}</span>
+  `).join(' ');
+}
+
+// 특정 당직자 개별 삭제 기능
+function removeWorker(dateStr, partKey, index) {
+  if (!confirm(`'${dateStr}'의 ${partKey} 당직자 중 한 명을 삭제하시겠습니까?`)) return;
+
+  const docRef = db.collection('duties').doc(dateStr);
+  db.runTransaction(async (transaction) => {
+    const doc = await transaction.get(docRef);
+    if (!doc.exists) return;
+
+    let data = doc.data();
+    let workerList = Array.isArray(data[partKey]) ? data[partKey] : [data[partKey]];
+    
+    // 해당 인덱스의 당직자 제거
+    workerList.splice(index, 1);
+    data[partKey] = workerList;
+
+    transaction.set(docRef, data);
+  }).then(() => {
+    console.log("당직자 삭제 완료");
+  }).catch((error) => {
+    console.error("삭제 실패: ", error);
+  });
+}
+
+// 날짜 포맷 및 주말 색상 처리 함수
+function getFormattedDateHtml(dateStr) {
+  const dateObj = new Date(dateStr);
+  const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()];
+  
+  let className = 'date-normal';
+  if (dayOfWeek === '토') className = 'date-sat';
+  if (dayOfWeek === '일') className = 'date-sun-holiday';
+
+  return {
+    html: `${dateStr} (${dayOfWeek})`,
+    className: className
+  };
+}
+
+// 3. 엑셀 일괄 업로드 처리 로직
+function handleExcelUpload() {
   const fileInput = document.getElementById('excelFile');
-  const file = fileInput.files ? fileInput.files[0] : null;
+  const file = fileInput.files[0];
 
   if (!file) {
-    alert('업로드할 엑셀 파일을 먼저 선택해 주세요!');
+    alert("업로드할 엑셀 파일을 선택해 주세요.");
     return;
   }
 
   const reader = new FileReader();
+  reader.onload = async function (e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const jsonRows = XLSX.utils.sheet_to_json(worksheet);
 
-  reader.onload = (e) => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-    
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    const excelData = XLSX.utils.sheet_to_json(worksheet);
-
-    if (excelData.length === 0) {
-      alert('엑셀 파일에 데이터가 없습니다.');
-      return;
-    }
-
-    excelData.forEach(row => {
-      let formattedDate = row['날짜'];
-      if (!formattedDate) return;
-
-      let existingData = dutyList.find(item => item.date == formattedDate);
-      let newData = existingData ? { ...existingData } : { date: String(formattedDate) };
-
-      if (!existingData) {
-        parts.forEach(p => { newData[p] = '-'; });
+      if (jsonRows.length === 0) {
+        alert("엑셀 파일에 데이터가 없습니다.");
+        return;
       }
 
-      parts.forEach(p => {
-        if (row[p]) newData[p] = row[p];
+      const batch = db.batch();
+      
+      jsonRows.forEach((row) => {
+        let dateStr = row['날짜'];
+        if (!dateStr) return;
+
+        // 엑셀 날짜 형식 보정 처리
+        if (typeof dateStr === 'number') {
+          const excelEpoch = new Date(1899, 11, 30);
+          const jsDate = new Date(excelEpoch.getTime() + dateStr * 86400000);
+          dateStr = jsDate.toISOString().split('T')[0];
+        }
+
+        const docRef = db.collection('duties').doc(String(dateStr));
+        
+        // 엑셀 파일은 파트별 여러 명이 입력되어 있을 경우 쉼표로 구분되어 있다고 가정하거나 배열 처리
+        const parsePart = (val) => val ? String(val).split(',').map(s => s.trim()) : [];
+
+        batch.set(docRef, {
+          date: String(dateStr),
+          무선: parsePart(row['무선']),
+          고객: parsePart(row['고객']),
+          유선1: parsePart(row['유선1']),
+          유선2: parsePart(row['유선2'])
+        }, { merge: true });
       });
 
-      db.collection("duties").doc(String(formattedDate)).set(newData)
-        .catch(err => console.error("엑셀 업로드 저장 오류:", err));
-    });
-
-    alert(`총 ${excelData.length}건의 당직 데이터가 클라우드에 반영되었습니다!`);
-    if (fileInput) fileInput.value = '';
+      await batch.commit();
+      alert("엑셀 데이터가 성공적으로 일괄 등록되었습니다!");
+      fileInput.value = '';
+    } catch (err) {
+      console.error("엑셀 업로드 에러: ", err);
+      alert("엑셀 파일을 처리하는 중 오류가 발생했습니다. 양식을 확인해 주세요.");
+    }
   };
-
   reader.readAsArrayBuffer(file);
-};
-
-// ==========================================
-// 9. 초기화 및 실시간 감시 시작
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-  const excelBtn = document.getElementById('excelBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const dutyDateInput = document.getElementById('dutyDate');
-
-  if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
-  if (registerBtn) registerBtn.addEventListener('click', addDuty);
-  if (dutyDateInput && !dutyDateInput.value) {
-    dutyDateInput.value = new Date().toISOString().substring(0, 10);
-  }
-
-  // 실시간 데이터 로드 시작
-  loadDutyDataRealtime();
-});
+}
