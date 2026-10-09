@@ -144,7 +144,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수 (전체 스케줄 표시 + 오늘 날짜 중앙 자동 스크롤)
+// 5. 표 화면에 그려주는 함수 (전체 스케줄 표시 + 자동 스크롤 제거)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -155,8 +155,6 @@ const renderTable = () => {
     tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; color: #777;">등록된 당직 정보가 없습니다.</td></tr>`;
     return;
   }
-
-  let todayRowElement = null;
 
   const now = new Date();
   const year = now.getFullYear();
@@ -169,7 +167,7 @@ const renderTable = () => {
     
     if (item.date === todayString) {
       tr.id = 'today-row';
-      tr.style.backgroundColor = '#e8f4fd'; 
+      tr.style.backgroundColor = '#e8f4fd'; // 오늘 날짜 하이라이트 유지
     }
 
     const dateHtml = formatFormattedDate(item.date);
@@ -180,17 +178,9 @@ const renderTable = () => {
       ${partsHtml}
     `;
     tbody.appendChild(tr);
-
-    if (item.date === todayString) {
-      todayRowElement = tr;
-    }
   });
-
-  setTimeout(() => {
-    if (todayRowElement) {
-      todayRowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, 100);
+  
+  // 접속 시 맨 위(제목과 등록 폼)가 먼저 보이도록 오늘 날짜 자동 스크롤 코드는 제거했습니다.
 };
 
 // ==========================================
