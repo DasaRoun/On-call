@@ -1,0 +1,469 @@
+// ==========================================
+// 0. 파이어베이스 및 파트 목록 설정
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBSRQl0aE1MPZ28LV82Gik4ZVtNUenukqY",
+  authDomain: "dasarowon-duty.firebaseapp.com",
+  projectId: "dasarowon-duty",
+  storageBucket: "dasarowon-duty.appspot.com",
+  messagingSenderId: "988864759421",
+  appId: "1:988864759421:web:384e950ff06100d0b9d314",
+  measurementId: "G-EPBYBDCQJX"
+};
+
+// 파이어베이스 초기화
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+
+// ==========================================
+// 1. 파트 목록 (6개 파트) 및 공휴일 정의
+// ==========================================
+const parts = ['무선', '고객', '유선1', '유선2', '보안', '현장점검'];
+
+// 주요 법정 공휴일 목록 (MM-DD: 공휴일명)
+const holidays = {
+  '01-01': '신정',
+  '03-01': '삼일절',
+  '05-05': '어린이날',
+  '06-06': '현충일',
+  '08-15': '광복절',
+  '10-03': '개천절',
+  '10-09': '한글날',
+  '12-25': '크리스마스'
+};
+
+// 당직자 데이터 저장 배열
+let dutyList = [];
+
+// ==========================================
+// 🌟 접속 시 최초 1회 관리자 인증 함수 (모달 및 별표(*) 마스킹 적용)
+// ==========================================
+const checkAdminAuthOnStart = () => {
+  if (sessionStorage.getItem('isAdminAuth') === 'true') {
+    return;
+  }
+
+  const modal = document.getElementById('authModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+};
+
+const submitAdminPassword = () => {
+  const passwordInput = document.getElementById('modalPassword');
+  const password = passwordInput ? passwordInput.value : '';
+
+  if (password === '0070') { // 관리자 비밀번호
+    sessionStorage.setItem('isAdminAuth', 'true');
+    const modal = document.getElementById('authModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+    alert('관리자 인증이 완료되었습니다!');
+  } else {
+    alert('비밀번호가 틀렸습니다! 다시 입력해주세요.');
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  }
+};
+
+// ==========================================
+// 2. 날짜 텍스트 및 요일 / 아래 줄 공휴일 서식
+// ==========================================
+const formatFormattedDate = (dateString) => {
+  const date = new Date(dateString);
+  const dayIndex = date.getDay(); 
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const monthDay = dateString.substring(5);
+
+  let holidayName = holidays[monthDay];
+
+  // 대체 공휴일 자동 계산
+  if (!holidayName && dayIndex === 1) {  
+    const targetHolidays = ['03-01', '05-05', '08-15', '10-03', '10-09', '12-25'];
+    
+    const yesterday = new Date(date);
+    yesterday.setDate(date.getDate() - 1);
+    const yesterdayMd = String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
+    
+    const dayBefore = new Date(date);
+    dayBefore.setDate(date.getDate() - 2);
+    const dayBeforeMd = String(dayBefore.getMonth() + 1).padStart(2, '0') + '-' + String(dayBefore.getDate()).padStart(2, '0');
+
+    if (targetHolidays.includes(yesterdayMd) || targetHolidays.includes(dayBeforeMd)) {
+      holidayName = '대체공휴일';
+    }
+  }
+
+  let colorClass = 'date-normal';
+  if (dayIndex === 0 || holidayName) {
+    colorClass = 'date-sun-holiday';
+  } else if (dayIndex === 6) {
+    colorClass = 'date-sat';
+  }
+
+  let displayHtml = `${dateString} (${days[dayIndex]})`;
+  if (holidayName) {
+    displayHtml += `<br><span class="holiday-name">${holidayName}</span>`;
+  }
+
+  return `<div class="date-cell-box ${colorClass}">${displayHtml}</div>`;
+};
+
+// ==========================================
+// 3. 다중 당직자 이름 태그 생성 (클릭 시 개별 삭제 & 세로 줄바꿈)
+// ==========================================
+const formatWorkers = (workers, date, part) => {
+  let workerList = [];
+  if (Array.isArray(workers)) {
+    workerList = workers;
+  } else if (workers && workers !== '-' && String(workers).trim() !== '') {
+    workerList = [workers];
+  }
+
+  if (workerList.length === 0) return '-';
+
+  return workerList.map((name, index) => `
+    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-bottom: 4px; display: inline-block;">
+      ${name}
+    </span>
+  `).join('<br>');
+};
+
+// ==========================================
+// 4. 이름 클릭 시 삭제 확인 팝업창 (비번 생략)
+// ==========================================
+const confirmDeleteWorker = (date, part, index, name) => {
+  if (confirm(`${name} 님을 삭제하시겠습니까?`)) {
+    deleteSingleWorker(date, part, index);
+  }
+};
+
+// ==========================================
+// 5. 표 화면에 그려주는 함수 (웹페이지는 맨 위 유지 + 표 내부 스크롤만 오늘 날짜로 이동)
+// ==========================================
+const renderTable = () => {
+  const tbody = document.getElementById('dutyTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (dutyList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: #777;">등록된 당직 정보가 없습니다.</td></tr>`;
+    return;
+  }
+
+  let todayRowElement = null;
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayString = `${year}-${month}-${day}`;
+
+  dutyList.forEach((item) => {
+    const tr = document.createElement('tr');
+    
+    if (item.date === todayString) {
+      tr.id = 'today-row';
+      tr.style.backgroundColor = '#e8f4fd'; // 오늘 날짜 하이라이트
+    }
+
+    const dateHtml = formatFormattedDate(item.date);
+    let partsHtml = parts.map(p => `<td>${formatWorkers(item[p], item.date, p)}</td>`).join('');
+
+    tr.innerHTML = `
+      <td>${dateHtml}</td>
+      ${partsHtml}
+    `;
+    tbody.appendChild(tr);
+
+    if (item.date === todayString) {
+      todayRowElement = tr;
+    }
+  });
+  
+  // 🌟 웹페이지 전체 화면은 건드리지 않고, 당직 현황표 내부 스크롤 박스만 오늘 날짜가 보이도록 이동
+  setTimeout(() => {
+    if (todayRowElement) {
+      const container = document.querySelector('.table-responsive');
+      if (container) {
+        const rowTop = todayRowElement.offsetTop;
+        const containerHeight = container.clientHeight;
+        const rowHeight = todayRowElement.clientHeight;
+        
+        container.scrollTo({
+          top: rowTop - (containerHeight / 2) + (rowHeight / 2),
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, 100);
+};
+
+// ==========================================
+// 🔄 파이어베이스 연동: 실시간 데이터 감시
+// ==========================================
+const loadDutyDataRealtime = () => {
+  db.collection("duties").orderBy("date", "asc").onSnapshot((snapshot) => {
+    dutyList = [];
+    snapshot.forEach((doc) => {
+      dutyList.push({ id: doc.id, ...doc.data() });
+    });
+    renderTable();
+  }, (error) => {
+    console.error("실시간 동기화 오류: ", error);
+  });
+};
+
+// ==========================================
+// 🌟 11. 변경 이력 저장 및 모달 제어 함수
+// ==========================================
+const saveHistory = (actionType, details) => {
+  const now = new Date();
+  const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  db.collection("history").add({
+    type: actionType,
+    details: details,
+    timestamp: timestamp
+  }).catch(err => console.error("이력 저장 실패:", err));
+};
+
+const openHistoryModal = () => {
+  const modal = document.getElementById('historyModal');
+  const container = document.getElementById('historyListContainer');
+  if (!modal || !container) return;
+
+  modal.style.display = 'flex';
+  container.innerHTML = '<p>이력을 불러오는 중...</p>';
+
+  db.collection("history").orderBy("timestamp", "desc").limit(50).get()
+    .then((snapshot) => {
+      if (snapshot.empty) {
+        container.innerHTML = '<p style="color: #777;">저장된 변경 이력이 없습니다.</p>';
+        return;
+      }
+
+      let html = '<ul style="padding-left: 20px; line-height: 1.6; max-height: 50vh; overflow-y: auto;">';
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        html += `<li style="margin-bottom: 8px;"><b>[${data.timestamp}]</b> <span style="color: #007bff; font-weight: bold;">${data.type}</span><br>${data.details}</li>`;
+      });
+      html += '</ul>';
+      container.innerHTML = html;
+    })
+    .catch((err) => {
+      console.error("이력 조회 오류:", err);
+      container.innerHTML = '<p style="color: red;">이력을 불러오는 중 오류가 발생했습니다.</p>';
+    });
+};
+
+const closeHistoryModal = () => {
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+};
+
+// ==========================================
+// 6. 특정 당직자 개별 삭제 함수 (이력 기록 포함)
+// ==========================================
+const deleteSingleWorker = (date, part, index) => {
+  let targetData = dutyList.find(item => item.date === date);
+
+  if (targetData) {
+    let workerList = Array.isArray(targetData[part]) ? targetData[part] : (targetData[part] && targetData[part] !== '-' ? [targetData[part]] : []);
+    
+    const removedName = workerList[index];
+    workerList.splice(index, 1);
+    targetData[part] = workerList;
+
+    const isEmpty = parts.every(p => {
+      const list = targetData[p];
+      return !list || (Array.isArray(list) && list.length === 0) || list === '-';
+    });
+
+    const updatePromise = isEmpty ? db.collection("duties").doc(date).delete() : db.collection("duties").doc(date).set(targetData);
+
+    updatePromise.then(() => {
+      saveHistory('당직 삭제', `${date} (${part}파트) - ${removedName || '담당자'} 삭제`);
+    }).catch(err => console.error(err));
+  }
+};
+
+// ==========================================
+// 7. 개별 직접 등록 함수 (이력 기록 포함)
+// ==========================================
+const addDuty = () => {
+  const dateInput = document.getElementById('dutyDate');
+  const partSelect = document.getElementById('partSelect');
+  const workerInput = document.getElementById('workerName');
+
+  const dateValue = dateInput ? dateInput.value : '';
+  const partValue = partSelect ? partSelect.value : '';
+  const nameValue = workerInput ? workerInput.value.trim() : '';
+
+  if (!dateValue || !nameValue) {
+    alert('날짜와 당직자 이름을 모두 입력해 주세요!');
+    return;
+  }
+
+  let existingData = dutyList.find(item => item.date === dateValue);
+  let newData = existingData ? { ...existingData } : { date: dateValue };
+
+  if (!existingData) {
+    parts.forEach(p => { newData[p] = []; });
+  }
+
+  if (!Array.isArray(newData[partValue])) {
+    newData[partValue] = newData[partValue] && newData[partValue] !== '-' ? [newData[partValue]] : [];
+  }
+
+  newData[partValue].push(nameValue);
+
+  db.collection("duties").doc(dateValue).set(newData)
+    .then(() => {
+      if (workerInput) workerInput.value = '';
+      saveHistory('당직 등록', `${dateValue} (${partValue}파트) - ${nameValue} 등록`);
+    })
+    .catch((error) => {
+      console.error("저장 실패: ", error);
+      alert('저장에 실패했습니다.');
+    });
+};
+
+// ==========================================
+// 8. 엑셀 파일 업로드 처리 함수 (이력 기록 포함)
+// ==========================================
+const uploadExcel = () => {
+  const fileInput = document.getElementById('excelFile');
+  const file = fileInput.files ? fileInput.files[0] : null;
+
+  if (!file) {
+    alert('업로드할 엑셀 파일을 먼저 선택해 주세요!');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const excelData = XLSX.utils.sheet_to_json(worksheet);
+
+    if (excelData.length === 0) {
+      alert('엑셀 파일에 데이터가 없습니다.');
+      return;
+    }
+
+    const batch = db.batch();
+
+    excelData.forEach(row => {
+      let formattedDate = row['날짜'];
+      if (!formattedDate) return;
+
+      if (typeof formattedDate === 'number') {
+        const excelEpoch = new Date(1899, 11, 30);
+        const jsDate = new Date(excelEpoch.getTime() + formattedDate * 86400000);
+        formattedDate = jsDate.toISOString().split('T')[0];
+      }
+
+      const dateStr = String(formattedDate);
+      let existingData = dutyList.find(item => item.date == dateStr);
+      let newData = existingData ? { ...existingData } : { date: dateStr };
+
+      if (!existingData) {
+        parts.forEach(p => { newData[p] = []; });
+      }
+
+      parts.forEach(p => {
+        if (row[p] !== undefined && row[p] !== null && row[p] !== '') {
+          const names = String(row[p]).split(',').map(s => s.trim()).filter(s => s);
+          newData[p] = names;
+        } else if (!newData[p]) {
+          newData[p] = [];
+        }
+      });
+
+      const docRef = db.collection("duties").doc(dateStr);
+      batch.set(docRef, newData);
+    });
+
+    batch.commit().then(() => {
+      alert(`총 ${excelData.length}건의 당직 데이터가 클라우드에 반영되었습니다!`);
+      if (fileInput) fileInput.value = '';
+      saveHistory('엑셀 업로드', `엑셀 파일을 통한 일괄 반영 (총 ${excelData.length}일치 데이터)`);
+    }).catch(err => {
+      console.error("엑셀 일괄 업로드 저장 오류:", err);
+      alert('엑셀 업로드 중 오류가 발생했습니다.');
+    });
+  };
+
+  reader.readAsArrayBuffer(file);
+};
+
+// ==========================================
+// 9. 현재 당직표 엑셀 다운로드 함수 (6개 파트 포함)
+// ==========================================
+const downloadExcel = () => {
+  if (!dutyList || dutyList.length === 0) {
+    alert('다운로드할 당직 데이터가 없습니다.');
+    return;
+  }
+
+  const excelData = dutyList.map(item => {
+    return {
+      '날짜': item.date,
+      '무선': Array.isArray(item['무선']) ? item['무선'].join(', ') : (item['무선'] || ''),
+      '고객': Array.isArray(item['고객']) ? item['고객'].join(', ') : (item['고객'] || ''),
+      '유선1': Array.isArray(item['유선1']) ? item['유선1'].join(', ') : (item['유선1'] || ''),
+      '유선2': Array.isArray(item['유선2']) ? item['유선2'].join(', ') : (item['유선2'] || ''),
+      '보안': Array.isArray(item['보안']) ? item['보안'].join(', ') : (item['보안'] || ''),
+      '현장점검': Array.isArray(item['현장점검']) ? item['현장점검'].join(', ') : (item['현장점검'] || '')
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "당직표");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  
+  XLSX.writeFile(workbook, `당직현황표_${year}-${month}-${day}.xlsx`);
+};
+
+// ==========================================
+// 10. 초기화 및 이벤트 연결 시작
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  checkAdminAuthOnStart();
+
+  const excelBtn = document.getElementById('excelBtn');
+  const registerBtn = document.getElementById('registerBtn');
+  const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+  const dutyDateInput = document.getElementById('dutyDate');
+
+  if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
+  if (registerBtn) registerBtn.addEventListener('click', addDuty);
+  if (downloadExcelBtn) downloadExcelBtn.addEventListener('click', downloadExcel);
+  
+  if (dutyDateInput && !dutyDateInput.value) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    dutyDateInput.value = `${year}-${month}-${day}`;
+  }
+
+  loadDutyDataRealtime();
+});
