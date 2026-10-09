@@ -140,7 +140,7 @@ const renderTable = () => {
 // 🔄 파이어베이스 연동: 실시간 데이터 감시
 // ==========================================
 const loadDutyDataRealtime = () => {
-  db.collection("duties").orderBy("date", "desc").onSnapshot((snapshot) => {
+  db.collection("duties").orderBy("date", "asc").onSnapshot((snapshot) => {
     dutyList = [];
     snapshot.forEach((doc) => {
       dutyList.push({ id: doc.id, ...doc.data() });
