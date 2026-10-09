@@ -179,9 +179,15 @@ const loadDutyDataRealtime = () => {
 };
 
 // ==========================================
-// 6. 특정 당직자 개별 삭제 함수 (파이어베이스 반영)
+// 6. 특정 당직자 개별 삭제 함수 (관리자 비밀번호 적용)
 // ==========================================
 const deleteSingleWorker = (date, part, index) => {
+  const password = prompt('관리자 비밀번호를 입력하세요:');
+  if (password !== '1234') {
+    alert('비밀번호가 틀렸습니다!');
+    return;
+  }
+
   let targetData = dutyList.find(item => item.date === date);
 
   if (targetData) {
@@ -206,9 +212,15 @@ const deleteSingleWorker = (date, part, index) => {
 };
 
 // ==========================================
-// 7. 개별 직접 등록 함수 (파이어베이스 저장 - 다중 추가 지원)
+// 7. 개별 직접 등록 함수 (관리자 비밀번호 적용)
 // ==========================================
 const addDuty = () => {
+  const password = prompt('관리자 비밀번호를 입력하세요:');
+  if (password !== '1234') {
+    alert('비밀번호가 틀렸습니다!');
+    return;
+  }
+
   const dateInput = document.getElementById('dutyDate');
   const partSelect = document.getElementById('partSelect');
   const workerInput = document.getElementById('workerName');
@@ -248,9 +260,15 @@ const addDuty = () => {
 };
 
 // ==========================================
-// 8. 엑셀 파일 업로드 처리 함수 (파이어베이스 저장)
+// 8. 엑셀 파일 업로드 처리 함수 (관리자 비밀번호 적용)
 // ==========================================
 const uploadExcel = () => {
+  const password = prompt('관리자 비밀번호를 입력하세요:');
+  if (password !== '1234') {
+    alert('비밀번호가 틀렸습니다!');
+    return;
+  }
+
   const fileInput = document.getElementById('excelFile');
   const file = fileInput.files ? fileInput.files[0] : null;
 
