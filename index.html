@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>당직 관리 시스템</title>
   <link rel="stylesheet" href="style.css">
-  <!-- 엑셀 파일 읽기 라이브러리 -->
+  
+  <!-- 엑셀 파일 읽기/쓰기 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <!-- 🌟 Firebase SDK 스크립트 추가 (호환용) -->
+  <!-- Firebase SDK 스크립트 추가 (호환용) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
@@ -21,7 +22,6 @@
     <div class="card">
       <h3>✏️ 개별 직접 등록</h3>
       
-      <!-- 🌟 가로 배치를 위한 감싸는 태그 추가 -->
       <div class="form-row" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px;">
         <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
           <label for="dutyDate">날짜 선택</label>
@@ -66,13 +66,15 @@
       </div>
     </div>
 
-    <!-- 3. 엑셀 업로드 구역 (맨 아래로 이동 완료!) -->
+    <!-- 3. 엑셀 업로드 및 다운로드 구역 -->
     <div class="card excel-card">
-      <h3>📁 엑셀 파일로 일괄 등록</h3>
+      <h3>📁 엑셀 파일 관리</h3>
       <p class="excel-guide">엑셀 첫 행의 열 이름을 <b>[날짜, 무선, 고객, 유선1, 유선2]</b>로 맞추어 업로드해 주세요.</p>
       <div class="excel-upload-group">
         <input type="file" id="excelFile" accept=".xlsx, .xls">
         <button id="excelBtn" type="button">엑셀 업로드</button>
+        <!-- 🌟 현재 당직표 다운로드 버튼 추가 -->
+        <button id="downloadExcelBtn" type="button" style="width: 100%; padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-top: 5px;">📥 현재 당직표 엑셀로 다운로드</button>
       </div>
     </div>
 
