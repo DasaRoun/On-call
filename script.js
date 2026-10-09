@@ -321,15 +321,48 @@ const uploadExcel = () => {
 };
 
 // ==========================================
-// 9. 초기화 및 실시간 감시 시작
+// 9. 현재 당직표 엑셀 다운로드 함수
+// ==========================================
+const downloadExcel = () => {
+  if (!dutyList || dutyList.length === 0) {
+    alert('다운로드할 당직 데이터가 없습니다.');
+    return;
+  }
+
+  const excelData = dutyList.map(item => {
+    return {
+      '날짜': item.date,
+      '무선': Array.isArray(item['무선']) ? item['무선'].join(', ') : (item['무선'] || ''),
+      '고객': Array.isArray(item['고객']) ? item['고객'].join(', ') : (item['고객'] || ''),
+      '유선1': Array.isArray(item['유선1']) ? item['유선1'].join(', ') : (item['유선1'] || ''),
+      '유선2': Array.isArray(item['유선2']) ? item['유선2'].join(', ') : (item['유선2'] || '')
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "당직표");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  
+  XLSX.writeFile(workbook, `당직현황표_${year}-${month}-${day}.xlsx`);
+};
+
+// ==========================================
+// 10. 초기화 및 이벤트 연결 시작
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   const excelBtn = document.getElementById('excelBtn');
   const registerBtn = document.getElementById('registerBtn');
+  const downloadExcelBtn = document.getElementById('downloadExcelBtn');
   const dutyDateInput = document.getElementById('dutyDate');
 
   if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
   if (registerBtn) registerBtn.addEventListener('click', addDuty);
+  if (downloadExcelBtn) downloadExcelBtn.addEventListener('click', downloadExcel);
   
   // 한국 시간(KST) 기준으로 날짜 선택(input) 기본값 오늘로 설정
   if (dutyDateInput && !dutyDateInput.value) {
