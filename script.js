@@ -110,7 +110,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수 (오늘 기준 앞뒤 7일만 필터링 + 스크롤)
+// 5. 표 화면에 그려주는 함수 (오늘 기준 앞뒤 7일 필터링 + 스크롤)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -122,7 +122,7 @@ const renderTable = () => {
     return;
   }
 
-  // 🌟 오늘 날짜 기준 (2026-10-09) 앞뒤 7일 계산
+  // 오늘 날짜 기준 설정
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -132,9 +132,9 @@ const renderTable = () => {
   const futureLimit = new Date(today);
   futureLimit.setDate(today.getDate() + 7); // 7일 후
 
-  // 필터링: 오늘 기준 앞뒤 7일 범위 내의 날짜만 추출
+  // 🌟 'T00:00:00'을 붙여야 날짜가 누락되지 않고 정확히 필터링됩니다!
   const filteredList = dutyList.filter(item => {
-    const itemDate = new Date(item.date);
+    const itemDate = new Date(item.date + 'T00:00:00');
     return itemDate >= pastLimit && itemDate <= futureLimit;
   });
 
