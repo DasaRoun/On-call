@@ -17,17 +17,7 @@
   <div class="container">
     <h1>📅 당직 관리 시스템</h1>
 
-    <!-- 1. 엑셀 업로드 구역 -->
-    <div class="card excel-card">
-      <h3>📁 엑셀 파일로 일괄 등록</h3>
-      <p class="excel-guide">엑셀 첫 행의 열 이름을 <b>[날짜, 무선, 고객, 유선1, 유선2]</b>로 맞추어 업로드해 주세요.</p>
-      <div class="excel-upload-group">
-        <input type="file" id="excelFile" accept=".xlsx, .xls">
-        <button id="excelBtn" type="button">엑셀 업로드</button>
-      </div>
-    </div>
-
-    <!-- 2. 개별 직접 등록 구역 -->
+    <!-- 1. 개별 직접 등록 구역 (맨 위로 이동) -->
     <div class="card">
       <h3>✏️ 개별 직접 등록</h3>
       <div class="form-group">
@@ -50,7 +40,7 @@
       <button id="registerBtn" type="button">당직 등록하기</button>
     </div>
 
-    <!-- 3. 당직 표 구역 -->
+    <!-- 2. 당직 표 구역 (중앙 배치) -->
     <div class="card">
       <h3>📋 당직 현황표</h3>
       <div class="table-responsive">
@@ -70,6 +60,17 @@
         </table>
       </div>
     </div>
+
+    <!-- 3. 엑셀 업로드 구역 (맨 아래로 이동 완료!) -->
+    <div class="card excel-card">
+      <h3>📁 엑셀 파일로 일괄 등록</h3>
+      <p class="excel-guide">엑셀 첫 행의 열 이름을 <b>[날짜, 무선, 고객, 유선1, 유선2]</b>로 맞추어 업로드해 주세요.</p>
+      <div class="excel-upload-group">
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+        <button id="excelBtn" type="button">엑셀 업로드</button>
+      </div>
+    </div>
+
   </div>
 
   <script src="script.js"></script>
