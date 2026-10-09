@@ -337,8 +337,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (excelBtn) excelBtn.addEventListener('click', uploadExcel);
   if (registerBtn) registerBtn.addEventListener('click', addDuty);
+  
+  // 🌟 한국 시간(KST) 기준으로 날짜 선택(input) 기본값 오늘로 설정
   if (dutyDateInput && !dutyDateInput.value) {
-    dutyDateInput.value = new Date().toISOString().substring(0, 10);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    dutyDateInput.value = `${year}-${month}-${day}`;
   }
 
   // 실시간 데이터 로드 시작
