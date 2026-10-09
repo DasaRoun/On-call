@@ -52,16 +52,18 @@ h1 {
 
 .excel-upload-group {
   display: flex;
+  flex-direction: column; /* 👈 가로에서 세로 정렬로 변경 */
   gap: 10px;
 }
 
 .excel-upload-group input {
-  flex: 1;
+  width: 100%; /* 👈 너비를 꽉 차게 변경 */
   background: white;
 }
 
 #excelBtn {
-  padding: 10px 20px;
+  width: 100%; /* 👈 버튼도 너비를 꽉 차게 변경 */
+  padding: 12px;
   background-color: #28a745;
   color: white;
   border: none;
