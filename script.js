@@ -81,23 +81,23 @@ const formatFormattedDate = (dateString) => {
 };
 
 // ==========================================
-// 3. 다중 당직자 이름 태그 생성 (클릭 시 개별 삭제)
+// 3. 다중 당직자 이름 태그 생성 (클릭 시 개별 삭제 & 세로 줄바꿈)
 // ==========================================
 const formatWorkers = (workers, date, part) => {
   let workerList = [];
   if (Array.isArray(workers)) {
     workerList = workers;
-  } else if (workers && workers !== '-' && workers.trim() !== '') {
+  } else if (workers && workers !== '-' && String(workers).trim() !== '') {
     workerList = [workers];
   }
 
   if (workerList.length === 0) return '-';
 
   return workerList.map((name, index) => `
-    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-bottom: 3px; display: inline-block;">
+    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-bottom: 4px; display: inline-block;">
       ${name}
     </span>
-  `).join('<br>'); // 👈 '<br>'로 변경하여 세로로 줄바꿈되도록 수정!
+  `).join('<br>');
 };
 
 // ==========================================
@@ -270,7 +270,6 @@ const uploadExcel = () => {
 
       parts.forEach(p => {
         if (row[p] !== undefined && row[p] !== null && row[p] !== '') {
-          // 엑셀 셀에 쉼표로 구분되어 있거나 단일 이름인 경우 모두 배열로 처리
           const names = String(row[p]).split(',').map(s => s.trim()).filter(s => s);
           newData[p] = names;
         } else if (!newData[p]) {
