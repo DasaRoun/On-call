@@ -95,18 +95,20 @@
     <!-- 3. 엑셀 업로드 및 다운로드 구역 -->
     <div class="card excel-card">
       <h3>📁 엑셀 파일 관리</h3>
-      <p class="excel-guide">엑셀 첫 행의 열 이름을 <b>[날짜, 무선, 고객, 유선1, 유선2]</b>로 맞추어 업로드해 주세요.</p>
+      <p class="excel-guide">엑셀 첫 행의 열 이름을 <b>[날짜, 무선, 고객, 유선1, 유선2, 보안, 현장점검]</b>로 맞추어 업로드해 주세요.</p>
       <div class="excel-upload-group">
         <input type="file" id="excelFile" accept=".xlsx, .xls">
-        <button id="excelBtn" type="button">엑셀 업로드</button>
-        <!-- 🌟 현재 당직표 다운로드 버튼 추가 -->
-        <button id="downloadExcelBtn" type="button" style="width: 100%; padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-top: 5px;">📥 현재 당직표 엑셀로 다운로드</button>
+        <!-- 🌟 엑셀 업로드 및 다운로드 버튼을 나란히 배치하기 위한 그룹 클래스 적용 -->
+        <div class="excel-btn-group">
+          <button id="excelBtn" type="button">엑셀 업로드</button>
+          <button id="downloadExcelBtn" type="button">엑셀 다운로드</button>
+        </div>
       </div>
     </div>
 
     <!-- 4. 변경 이력 확인 버튼 구역 -->
     <div class="card" style="text-align: center;">
-      <button id="historyBtn" type="button" onclick="openHistoryModal()" style="width: 100%; padding: 10px; background-color: #6c757d; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer;">📋 당직 변경 이력 보기</button>
+      <button id="historyBtn" type="button" onclick="openHistoryModal()">변경 이력</button>
     </div>
 
   </div>
