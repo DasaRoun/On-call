@@ -2,40 +2,42 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
   background-color: #f0f2f5;
-  padding: 20px;
+  padding: 12px; /* 모바일에서 주변 여백을 슬림하게 조정 */
   display: flex;
   justify-content: center;
 }
 
 .container {
-  max-width: 850px;
   width: 100%;
+  max-width: 600px; /* 모바일 화면에 최적화된 최대 너비 설정 */
 }
 
 h1 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   color: #333;
+  font-size: 1.4rem; /* 모바일 표준 제목 크기 */
 }
 
 .card {
   background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-bottom: 15px;
 }
 
 .card h3 {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   color: #444;
   border-left: 4px solid #007bff;
-  padding-left: 10px;
+  padding-left: 8px;
+  font-size: 1.05rem;
 }
 
 /* 엑셀 박스 스타일 */
@@ -45,30 +47,33 @@ h1 {
 }
 
 .excel-guide {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #555;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  line-height: 1.3;
 }
 
 .excel-upload-group {
   display: flex;
-  flex-direction: column; /* 👈 가로에서 세로 정렬로 변경 */
-  gap: 10px;
+  flex-direction: column; /* 모바일에서 세로 정렬 */
+  gap: 8px;
 }
 
 .excel-upload-group input {
-  width: 100%; /* 👈 너비를 꽉 차게 변경 */
+  width: 100%;
   background: white;
+  font-size: 0.85rem;
 }
 
 #excelBtn {
-  width: 100%; /* 👈 버튼도 너비를 꽉 차게 변경 */
-  padding: 12px;
+  width: 100%;
+  padding: 10px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   font-weight: bold;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
@@ -78,14 +83,14 @@ h1 {
 
 /* 개별 등록 폼 스타일 */
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: bold;
   color: #555;
 }
@@ -94,17 +99,18 @@ input, select {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.95rem; /* 모바일에서 입력하기 편한 글자 크기 */
+  width: 100%;
 }
 
 #registerBtn {
   width: 100%;
-  padding: 12px;
+  padding: 11px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: bold;
   cursor: pointer;
   margin-top: 5px;
@@ -120,7 +126,7 @@ input, select {
   overflow-x: auto;
 }
 
-/* 표(Table) 스타일 */
+/* 표(Table) 스타일 - 모바일 맞춤 촘촘한 간격 */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -129,85 +135,55 @@ table {
 }
 
 th, td {
-  padding: 10px 6px;
+  padding: 8px 4px; /* 여백을 좁혀서 '유선2'까지 한 화면에 들어가도록 유도 */
   border-bottom: 1px solid #ddd;
-  font-size: 0.9rem;
+  font-size: 0.82rem; /* 모바일에 최적화된 표 글자 크기 */
   vertical-align: middle;
 }
 
 th {
   background-color: #f8f9fa;
   color: #333;
+  font-weight: bold;
 }
 
 /* 🎨 날짜 칸 위아래 줄바꿈 및 간격 최소화 */
 .date-cell-box {
   text-align: center;
-  line-height: 1.15; /* 날짜와 바로 밑 줄 공휴일 간격 촘촘하게 설정 */
+  line-height: 1.15;
   font-weight: bold;
 }
 
 .holiday-name {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: normal;
 }
 
 .date-sat {
-  color: #0056b3; /* 토요일: 파란색 */
+  color: #0056b3;
 }
 
 .date-sun-holiday {
-  color: #d9363e; /* 일요일 및 공휴일: 빨간색 */
+  color: #d9363e;
 }
 
 .date-normal {
-  color: #333333; /* 평일: 검은색 */
+  color: #333333;
 }
 
 /* 🏷️ 당직자 이름 버튼 스타일 */
 .name-tag {
   display: inline-block;
   background-color: #e9ecef;
-  padding: 5px 12px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 0.8rem;
   color: #333;
-  transition: all 0.2s ease;
 }
 
 .name-tag:hover {
   background-color: #ff4d4f;
   color: white;
-}
-
-/* 📱 모바일 화면 최적화 (화면 너비 600px 이하일 때 적용) */
-@media screen and (max-width: 600px) {
-  body {
-    padding: 10px; /* 모바일 양옆 여백을 줄여서 전체 공간 확보 */
-  }
-
-  .card {
-    padding: 12px; /* 카드 내부 여백 축소 */
-  }
-
-  /* 날짜 입력칸 글자 잘림 방지 */
-  input[type="date"], select, input[type="text"] {
-    font-size: 0.85rem;
-    padding: 8px;
-  }
-
-  /* 표(Table) 글자 크기와 패딩을 줄여서 '유선2' 등 글자 잘림 방지 */
-  th, td {
-    padding: 8px 4px;
-    font-size: 0.8rem;
-  }
-}
-
-/* 📱 모바일 화면에서 표 간격 최적화 */
-@media screen and (max-width: 600px) {
-  th, td {
-    padding: 8px 3px;     /* 칸 좌우 여백을 더 좁게 줄입니다 */
-    font-size: 0.8rem;    /* 글자 크기를 살짝 줄여 공간을 확보합니다 */
-  }
 }
