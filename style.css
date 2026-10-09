@@ -205,23 +205,45 @@ th {
   border-bottom: 1px solid #e5e5ea;
 }
 
-/* 🌟 날짜 열 좌우 스크롤 시 고정 설정 */
-th:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 20; /* 상단 헤더 중에서도 가장 위에 오도록 설정 */
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-}
-
-td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  background-color: #ffffff; /* 스크롤 시 내용이 겹쳐 보이지 않도록 배경색 지정 */
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02); /* 오른쪽 경계에 아주 연한 그림자 효과 */
-}
-
 /* 날짜 칸 서식 */
 .date-cell-box {
-  text-align
+  text-align: center;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.holiday-name {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #ff3b30; /* 애플 시스템 레드 */
+}
+
+.date-sat {
+  color: #007aff; /* 애플 시스템 블루 */
+}
+
+.date-sun-holiday {
+  color: #ff3b30;
+}
+
+.date-normal {
+  color: #1c1c1e;
+}
+
+/* 🍏 🍎 당직자 이름 알약 뱃지 (iOS 캡슐 스타일) */
+.name-tag {
+  display: inline-block;
+  background-color: #f2f2f7;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: #1c1c1e;
+  transition: all 0.2s ease;
+}
+
+.name-tag:hover {
+  background-color: #ffe5e5;
+  color: #ff3b30;
+}
