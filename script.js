@@ -49,7 +49,7 @@ const formatFormattedDate = (dateString) => {
   let holidayName = holidays[monthDay];
 
   // 대체 공휴일 자동 계산
-  if (!holidayName && dayIndex === 1) { 
+  if (!holidayName && dayIndex === 1) {  
     const targetHolidays = ['03-01', '05-05', '08-15', '10-03', '10-09', '12-25'];
     
     const yesterday = new Date(date);
@@ -97,7 +97,7 @@ const formatWorkers = (workers, date, part) => {
     <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-bottom: 4px; display: inline-block;">
       ${name}
     </span>
-  `).join('<br>'); // 👈 이 부분을 다시 '<br>'로 변경해 줍니다!
+  `).join('<br>');
 };
 
 // ==========================================
@@ -110,7 +110,7 @@ const confirmDeleteWorker = (date, part, index, name) => {
 };
 
 // ==========================================
-// 5. 표 화면에 그려주는 함수 (오늘 기준 앞뒤 7일 필터링 + 오늘 날짜 중앙 스크롤)
+// 5. 표 화면에 그려주는 함수 (전체 스케줄 표시 + 오늘 날짜 중앙 자동 스크롤)
 // ==========================================
 const renderTable = () => {
   const tbody = document.getElementById('dutyTableBody');
@@ -122,36 +122,17 @@ const renderTable = () => {
     return;
   }
 
-  // 오늘 날짜 기준 설정
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const pastLimit = new Date(today);
-  pastLimit.setDate(today.getDate() - 7); // 7일 전
-
-  const futureLimit = new Date(today);
-  futureLimit.setDate(today.getDate() + 7); // 7일 후
-
-  const filteredList = dutyList.filter(item => {
-    const itemDate = new Date(item.date + 'T00:00:00');
-    return itemDate >= pastLimit && itemDate <= futureLimit;
-  });
-
-  if (filteredList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; color: #777;">최근 일주일 내 등록된 당직 정보가 없습니다.</td></tr>`;
-    return;
-  }
-
   let todayRowElement = null;
   const todayString = new Date().toISOString().substring(0, 10); // "2026-10-09" 형태
 
-  filteredList.forEach((item) => {
+  // 🌟 전체 스케줄(dutyList)을 제한 없이 모두 렌더링합니다.
+  dutyList.forEach((item) => {
     const tr = document.createElement('tr');
     
-    // 오늘 날짜 행에 특별히 ID나 구분을 부여하기 위해 체크
+    // 오늘 날짜 행 구분을 위한 처리 및 하이라이트
     if (item.date === todayString) {
       tr.id = 'today-row';
-      tr.style.backgroundColor = '#e8f4fd'; // 오늘 날짜 표에 연한 하늘색 하이라이트 효과 (선택사항)
+      tr.style.backgroundColor = '#e8f4fd'; // 오늘 날짜 연한 하늘색 배경 하이라이트
     }
 
     const dateHtml = formatFormattedDate(item.date);
@@ -173,7 +154,6 @@ const renderTable = () => {
     if (todayRowElement) {
       const container = document.querySelector('.table-responsive');
       if (container) {
-        // 컨테이너 높이의 절반 위치에 오늘 날짜 행이 오도록 계산
         container.scrollTop = todayRowElement.offsetTop - container.offsetTop - (container.clientHeight / 2) + (todayRowElement.clientHeight / 2);
       }
     }
@@ -354,4 +334,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // 실시간 데이터 로드 시작
   loadDutyDataRealtime();
 });
-
