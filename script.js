@@ -88,17 +88,16 @@ const formatWorkers = (workers, date, part) => {
   if (Array.isArray(workers)) {
     workerList = workers;
   } else if (workers && workers !== '-' && workers.trim() !== '') {
-    // 기존 단일 문자열 데이터 호환용
     workerList = [workers];
   }
 
   if (workerList.length === 0) return '-';
 
   return workerList.map((name, index) => `
-    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제">
+    <span class="name-tag" onclick="confirmDeleteWorker('${date}', '${part}', ${index}, '${name}')" title="클릭시 삭제" style="margin-bottom: 3px; display: inline-block;">
       ${name}
     </span>
-  `).join(' ');
+  `).join('<br>'); // 👈 '<br>'로 변경하여 세로로 줄바꿈되도록 수정!
 };
 
 // ==========================================
